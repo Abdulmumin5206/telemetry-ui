@@ -42,8 +42,11 @@ export const FAKE_IMU_DATA = {
   roll: -2.1,    // degrees
   pitch: 1.3,    // degrees
   yaw: 278.6,    // degrees (heading)
-  accel: { x: 0.02, y: -0.01, z: 9.81 },   // m/s² 
-  gyro: { x: 0.35, y: -0.23, z: 0.11 },     // °/s
+  gyro: { x: 0.35, y: -0.23, z: 0.11, omega: 0.43 },     // °/s
+  angAcc: { x: 0.01, y: 0.02, z: -0.01, alpha: 0.03 },   // °/s²
+  accelRaw: { x: 0.02, y: -0.01, z: 1.0 },               // g
+  accelLin: { x: 0.1, y: -0.2, z: 0.5 },                 // m/s²
+  velocity: { x: 0.1, y: -0.05, z: 0.02, v: 0.11 }       // m/s
 };
 
 // Flight status
@@ -64,11 +67,10 @@ export const FAKE_SYSTEM_HEALTH = {
 
 // Additional Sensor Data for Grid
 export const FAKE_SENSOR_DATA = {
-  bme680: { temp: 27.4, humidity: 45.2, pressure: 1008.7, gas: 152.3 },
-  bme280: { temp: 27.6, humidity: 44.8, pressure: 1008.6 },
-  bmp280: { temp: 27.5, pressure: 1008.5 },
-  mics: { raw: 0.732, rs: 15.3, ratio: 1.28, activity: 0.42 },
-  battery: { adc: 2457, voltage: 14.82, percentage: 87 }
+  env680: { temp: 27.4, humidity: 45.2, pressure: 1008.7, gas: 152.3 },
+  env280: { temp: 27.6, humidity: 44.8, pressure: 1008.6 },
+  mics: { vout: 0.732, rs: 15.3, ratio: 1.28, idx: 42.0 },
+  battery: { adc: 2457, voltage: 14.82 }
 };
 
 // Create some initial history (e.g. 50 points)
@@ -80,9 +82,8 @@ export const createInitialHistory = (baseVal, variance) => {
 };
 
 export const FAKE_SENSOR_HISTORY = {
-  bme680: createInitialHistory(150, 10),   // Gas resistance history
-  bme280: createInitialHistory(1008, 1),   // Pressure history
-  bmp280: createInitialHistory(1008, 1),   // Pressure history
+  env680: createInitialHistory(150, 10),   // Gas resistance history
+  env280: createInitialHistory(1008, 1),   // Pressure history
   mics: createInitialHistory(1.0, 0.2),    // Ratio history
   battery: createInitialHistory(14.8, 0.1) // Voltage history
 };
@@ -118,52 +119,64 @@ export function generateLiveIMU(baseData = FAKE_IMU_DATA, t = 0) {
     roll: baseData.roll + Math.sin(t * 0.5) * 1.5 + (Math.random() - 0.5) * 0.4,
     pitch: baseData.pitch + Math.cos(t * 0.3) * 0.8 + (Math.random() - 0.5) * 0.3,
     yaw: (baseData.yaw + Math.sin(t * 0.1) * 3 + 360) % 360,
-    accel: {
-      x: baseData.accel.x + (Math.random() - 0.5) * 0.02,
-      y: baseData.accel.y + (Math.random() - 0.5) * 0.02,
-      z: baseData.accel.z + (Math.random() - 0.5) * 0.05,
-    },
     gyro: {
       x: baseData.gyro.x + (Math.random() - 0.5) * 0.1,
       y: baseData.gyro.y + (Math.random() - 0.5) * 0.1,
       z: baseData.gyro.z + (Math.random() - 0.5) * 0.05,
+      omega: baseData.gyro.omega + (Math.random() - 0.5) * 0.1,
     },
+    angAcc: {
+      x: baseData.angAcc.x + (Math.random() - 0.5) * 0.05,
+      y: baseData.angAcc.y + (Math.random() - 0.5) * 0.05,
+      z: baseData.angAcc.z + (Math.random() - 0.5) * 0.05,
+      alpha: baseData.angAcc.alpha + (Math.random() - 0.5) * 0.05,
+    },
+    accelRaw: {
+      x: baseData.accelRaw.x + (Math.random() - 0.5) * 0.02,
+      y: baseData.accelRaw.y + (Math.random() - 0.5) * 0.02,
+      z: baseData.accelRaw.z + (Math.random() - 0.5) * 0.05,
+    },
+    accelLin: {
+      x: baseData.accelLin.x + (Math.random() - 0.5) * 0.05,
+      y: baseData.accelLin.y + (Math.random() - 0.5) * 0.05,
+      z: baseData.accelLin.z + (Math.random() - 0.5) * 0.05,
+    },
+    velocity: {
+      x: baseData.velocity.x + (Math.random() - 0.5) * 0.02,
+      y: baseData.velocity.y + (Math.random() - 0.5) * 0.02,
+      z: baseData.velocity.z + (Math.random() - 0.5) * 0.02,
+      v: baseData.velocity.v + (Math.random() - 0.5) * 0.02,
+    }
   };
 }
 
 // Helper to generate simulated live sensor data
 export function generateLiveSensors(baseData = FAKE_SENSOR_DATA, t = 0) {
   return {
-    bme680: {
-      ...baseData.bme680,
-      temp: baseData.bme680.temp + (Math.random() - 0.5) * 0.1,
-      humidity: baseData.bme680.humidity + (Math.random() - 0.5) * 0.2,
-      pressure: baseData.bme680.pressure + (Math.random() - 0.5) * 0.1,
-      gas: baseData.bme680.gas + Math.sin(t * 0.2) * 5 + (Math.random() - 0.5) * 2
+    env680: {
+      ...baseData.env680,
+      temp: baseData.env680.temp + (Math.random() - 0.5) * 0.1,
+      humidity: baseData.env680.humidity + (Math.random() - 0.5) * 0.2,
+      pressure: baseData.env680.pressure + (Math.random() - 0.5) * 0.1,
+      gas: baseData.env680.gas + Math.sin(t * 0.2) * 5 + (Math.random() - 0.5) * 2
     },
-    bme280: {
-      ...baseData.bme280,
-      temp: baseData.bme280.temp + (Math.random() - 0.5) * 0.1,
-      humidity: baseData.bme280.humidity + (Math.random() - 0.5) * 0.2,
-      pressure: baseData.bme280.pressure + Math.sin(t * 0.3) * 0.5 + (Math.random() - 0.5) * 0.1
-    },
-    bmp280: {
-      ...baseData.bmp280,
-      temp: baseData.bmp280.temp + (Math.random() - 0.5) * 0.1,
-      pressure: baseData.bmp280.pressure + Math.cos(t * 0.2) * 0.5 + (Math.random() - 0.5) * 0.1
+    env280: {
+      ...baseData.env280,
+      temp: baseData.env280.temp + (Math.random() - 0.5) * 0.1,
+      humidity: baseData.env280.humidity + (Math.random() - 0.5) * 0.2,
+      pressure: baseData.env280.pressure + Math.sin(t * 0.3) * 0.5 + (Math.random() - 0.5) * 0.1
     },
     mics: {
       ...baseData.mics,
-      raw: baseData.mics.raw + (Math.random() - 0.5) * 0.01,
+      vout: baseData.mics.vout + (Math.random() - 0.5) * 0.01,
       rs: baseData.mics.rs + (Math.random() - 0.5) * 0.2,
       ratio: baseData.mics.ratio + Math.sin(t * 0.1) * 0.1 + (Math.random() - 0.5) * 0.05,
-      activity: baseData.mics.activity + (Math.random() - 0.5) * 0.02
+      idx: baseData.mics.idx + (Math.random() - 0.5) * 0.5
     },
     battery: {
       ...baseData.battery,
       adc: Math.max(0, baseData.battery.adc + Math.round((Math.random() - 0.5) * 2)),
-      voltage: baseData.battery.voltage - 0.0001, // slow drain
-      percentage: Math.max(0, baseData.battery.percentage - 0.001)
+      voltage: baseData.battery.voltage - 0.0001
     }
   };
 }

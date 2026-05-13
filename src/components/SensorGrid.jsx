@@ -143,77 +143,89 @@ export default function SensorGrid({ imuData, imuRef, sensorData, sensorHistory,
   return (
     <div className="sensor-grid">
       {/* Row 1 */}
-      {/* 1. BME680 */}
-      <SensorPanel icon="◎" iconColor="#ab47bc" title="BME680">
+      {/* 1. ENV680 */}
+      <SensorPanel icon="◎" iconColor="#ab47bc" title="ENV680 (BME680)">
         <div className="sensor-metrics-grid">
           <div className="sensor-metric">
             <span className="sensor-metric-label">TEMPERATURE</span>
-            <div><span className="sensor-metric-value">{sensorData.bme680.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
+            <div><span className="sensor-metric-value">{sensorData.env680.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
           </div>
           <div className="sensor-metric">
             <span className="sensor-metric-label">HUMIDITY</span>
-            <div><span className="sensor-metric-value">{sensorData.bme680.humidity.toFixed(1)}</span><span className="sensor-metric-unit">%</span></div>
+            <div><span className="sensor-metric-value">{sensorData.env680.humidity.toFixed(1)}</span><span className="sensor-metric-unit">%</span></div>
           </div>
           <div className="sensor-metric">
             <span className="sensor-metric-label">PRESSURE</span>
-            <div><span className="sensor-metric-value">{sensorData.bme680.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
+            <div><span className="sensor-metric-value">{sensorData.env680.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
           </div>
           <div className="sensor-metric">
             <span className="sensor-metric-label">GAS RESISTANCE</span>
-            <div><span className="sensor-metric-value">{sensorData.bme680.gas.toFixed(1)}</span><span className="sensor-metric-unit">kΩ</span></div>
+            <div><span className="sensor-metric-value">{sensorData.env680.gas.toFixed(1)}</span><span className="sensor-metric-unit">kΩ</span></div>
           </div>
         </div>
         <div className="sensor-graph-container">
           <SensorChart
-            data={sensorHistory.bme680}
+            data={sensorHistory.env680}
             stroke="#ab47bc"
           />
         </div>
       </SensorPanel>
 
-      {/* 2. BME280 */}
-      <SensorPanel icon="○" iconColor="#29b6f6" title="BME280">
+      {/* 2. ENV280 */}
+      <SensorPanel icon="○" iconColor="#29b6f6" title="ENV280 (BME/BMP280)">
         <div className="sensor-metrics-grid">
           <div className="sensor-metric">
             <span className="sensor-metric-label">TEMPERATURE</span>
-            <div><span className="sensor-metric-value">{sensorData.bme280.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
+            <div><span className="sensor-metric-value">{sensorData.env280.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
           </div>
           <div className="sensor-metric">
             <span className="sensor-metric-label">HUMIDITY</span>
-            <div><span className="sensor-metric-value">{sensorData.bme280.humidity.toFixed(1)}</span><span className="sensor-metric-unit">%</span></div>
+            <div><span className="sensor-metric-value">{sensorData.env280.humidity ? sensorData.env280.humidity.toFixed(1) : 'NA'}</span><span className="sensor-metric-unit">%</span></div>
           </div>
           <div className="sensor-metric">
             <span className="sensor-metric-label">PRESSURE</span>
-            <div><span className="sensor-metric-value">{sensorData.bme280.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
+            <div><span className="sensor-metric-value">{sensorData.env280.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
           </div>
         </div>
         <div className="sensor-graph-container">
           <SensorChart
-            data={sensorHistory.bme280}
+            data={sensorHistory.env280}
             stroke="#29b6f6"
           />
         </div>
       </SensorPanel>
 
-      {/* 3. BMP280 */}
-      <SensorPanel icon="📄" iconColor="#ff9800" title="BMP280">
-        <div className="sensor-metrics-grid">
-          <div className="sensor-metric">
-            <span className="sensor-metric-label">TEMPERATURE</span>
-            <div><span className="sensor-metric-value">{sensorData.bmp280.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
-          </div>
-          <div className="sensor-metric">
-            <span className="sensor-metric-label">PRESSURE</span>
-            <div><span className="sensor-metric-value">{sensorData.bmp280.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
+      {/* 3. IMU KINEMATICS */}
+      <div className="sensor-panel">
+        <div className="sensor-header">
+          <span className="sensor-icon" style={{ color: '#ff9800' }}>🚀</span>
+          <h3 className="sensor-title" style={{ color: '#ff9800' }}>IMU KINEMATICS</h3>
+        </div>
+        <div className="sensor-body" style={{ padding: '8px' }}>
+          <div className="sensor-imu-cols">
+            <div className="sensor-metric">
+              <span className="sensor-metric-label">LINEAR ACCEL (m/s²)</span>
+              <div style={{ display: 'flex', gap: '8px', color: '#ff4444' }}><span>X</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.accelLin.x.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#44ff44' }}><span>Y</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.accelLin.y.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#4488ff' }}><span>Z</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.accelLin.z.toFixed(2)}</span></div>
+            </div>
+            <div className="sensor-metric">
+              <span className="sensor-metric-label">ANGULAR ACCEL (°/s²)</span>
+              <div style={{ display: 'flex', gap: '8px', color: '#ff4444' }}><span>X</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.angAcc.x.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#44ff44' }}><span>Y</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.angAcc.y.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#4488ff' }}><span>Z</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.angAcc.z.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#ffea00' }}><span>α</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.angAcc.alpha.toFixed(2)}</span></div>
+            </div>
+            <div className="sensor-metric">
+              <span className="sensor-metric-label">VELOCITY EST (m/s)</span>
+              <div style={{ display: 'flex', gap: '8px', color: '#ff4444' }}><span>X</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.velocity.x.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#44ff44' }}><span>Y</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.velocity.y.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#4488ff' }}><span>Z</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.velocity.z.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#ffea00' }}><span>V</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.velocity.v.toFixed(2)}</span></div>
+            </div>
           </div>
         </div>
-        <div className="sensor-graph-container">
-          <SensorChart
-            data={sensorHistory.bmp280}
-            stroke="#ff9800"
-          />
-        </div>
-      </SensorPanel>
+      </div>
 
       {/* 4. MPU-9250 (IMU) — Uses CSS cube instead of WebGL Canvas */}
       <div className="sensor-panel">
@@ -224,16 +236,17 @@ export default function SensorGrid({ imuData, imuRef, sensorData, sensorHistory,
         <div className="sensor-body" style={{ padding: '8px' }}>
           <div className="sensor-imu-cols">
             <div className="sensor-metric">
-              <span className="sensor-metric-label">ACCELEROMETER (g)</span>
-              <div style={{ display: 'flex', gap: '8px', color: '#ff4444' }}><span>X</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.accel.x.toFixed(2)}</span></div>
-              <div style={{ display: 'flex', gap: '8px', color: '#44ff44' }}><span>Y</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.accel.y.toFixed(2)}</span></div>
-              <div style={{ display: 'flex', gap: '8px', color: '#4488ff' }}><span>Z</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.accel.z.toFixed(2)}</span></div>
+              <span className="sensor-metric-label">ACCELEROMETER RAW (g)</span>
+              <div style={{ display: 'flex', gap: '8px', color: '#ff4444' }}><span>X</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.accelRaw.x.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#44ff44' }}><span>Y</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.accelRaw.y.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#4488ff' }}><span>Z</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.accelRaw.z.toFixed(2)}</span></div>
             </div>
             <div className="sensor-metric">
               <span className="sensor-metric-label">GYROSCOPE (°/s)</span>
               <div style={{ display: 'flex', gap: '8px', color: '#ff4444' }}><span>X</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.gyro.x.toFixed(2)}</span></div>
               <div style={{ display: 'flex', gap: '8px', color: '#44ff44' }}><span>Y</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.gyro.y.toFixed(2)}</span></div>
               <div style={{ display: 'flex', gap: '8px', color: '#4488ff' }}><span>Z</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.gyro.z.toFixed(2)}</span></div>
+              <div style={{ display: 'flex', gap: '8px', color: '#ffea00' }}><span>Ω</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.gyro.omega.toFixed(2)}</span></div>
             </div>
           </div>
           <div className="sensor-graph-container" style={{ position: 'relative', background: 'rgba(0,0,0,0.2)', borderRadius: '4px' }}>
@@ -247,8 +260,8 @@ export default function SensorGrid({ imuData, imuRef, sensorData, sensorHistory,
       <SensorPanel icon="⚗️" iconColor="#ffea00" title="MICS-5524 (GAS SENSOR)">
         <div className="sensor-metrics-grid">
           <div className="sensor-metric">
-            <span className="sensor-metric-label">RAW VOLTAGE</span>
-            <div><span className="sensor-metric-value">{sensorData.mics.raw.toFixed(3)}</span><span className="sensor-metric-unit">V</span></div>
+            <span className="sensor-metric-label">RAW VOLTAGE (Vout)</span>
+            <div><span className="sensor-metric-value">{sensorData.mics.vout.toFixed(3)}</span><span className="sensor-metric-unit">V</span></div>
           </div>
           <div className="sensor-metric">
             <span className="sensor-metric-label">RESISTANCE (Rs)</span>
@@ -260,7 +273,7 @@ export default function SensorGrid({ imuData, imuRef, sensorData, sensorHistory,
           </div>
           <div className="sensor-metric">
             <span className="sensor-metric-label">ACTIVITY INDEX</span>
-            <div><span className="sensor-metric-value">{sensorData.mics.activity.toFixed(2)}</span></div>
+            <div><span className="sensor-metric-value">{sensorData.mics.idx.toFixed(2)}</span><span className="sensor-metric-unit">%</span></div>
           </div>
         </div>
         <div className="sensor-graph-container">
@@ -279,13 +292,9 @@ export default function SensorGrid({ imuData, imuRef, sensorData, sensorHistory,
             <div><span className="sensor-metric-value">{sensorData.battery.adc}</span><span className="sensor-metric-unit">counts</span></div>
           </div>
           <div className="sensor-metric" style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '40px', height: '20px', border: '2px solid #555', borderRadius: '3px', position: 'relative', padding: '2px' }}>
-                <div style={{ width: `${sensorData.battery.percentage}%`, height: '100%', background: '#00e676', borderRadius: '1px' }}></div>
-                <div style={{ position: 'absolute', right: '-4px', top: '4px', width: '2px', height: '8px', background: '#555', borderRadius: '0 2px 2px 0' }}></div>
-              </div>
-              <span className="sensor-metric-value">{sensorData.battery.percentage.toFixed(0)}%</span>
-            </div>
+            {/* Removed fake percentage as it's not present in telemetry data */}
+            <span className="sensor-metric-label">RAW ADC</span>
+            <div><span className="sensor-metric-value">{sensorData.battery.adc}</span><span className="sensor-metric-unit">mV</span></div>
           </div>
           <div className="sensor-metric">
             <span className="sensor-metric-label">VOLTAGE</span>
@@ -319,13 +328,12 @@ export default function SensorGrid({ imuData, imuRef, sensorData, sensorHistory,
         <div className="sensor-body">
           <div className="sensor-log-container">
             <div className="log-line">{currentTime.toLocaleTimeString()} GPS: {gpsData.latitude.toFixed(7)}, {gpsData.longitude.toFixed(7)}, {gpsData.altitude.toFixed(1)}m</div>
-            <div className="log-line">{currentTime.toLocaleTimeString()} SPD: {gpsData.speed.toFixed(1)}m/s CRS: {gpsData.course.toFixed(1)}° SAT: {gpsData.satellites} HDOP: {gpsData.hdop}</div>
-            <div className="log-line">{currentTime.toLocaleTimeString()} BME680: T={sensorData.bme680.temp.toFixed(1)}°C H={sensorData.bme680.humidity.toFixed(1)}% P={sensorData.bme680.pressure.toFixed(1)}hPa Gas={sensorData.bme680.gas.toFixed(1)}kΩ</div>
-            <div className="log-line">{currentTime.toLocaleTimeString()} BME280: T={sensorData.bme280.temp.toFixed(1)}°C H={sensorData.bme280.humidity.toFixed(1)}% P={sensorData.bme280.pressure.toFixed(1)}hPa</div>
-            <div className="log-line">{currentTime.toLocaleTimeString()} BMP280: T={sensorData.bmp280.temp.toFixed(1)}°C P={sensorData.bmp280.pressure.toFixed(1)}hPa</div>
-            <div className="log-line">{currentTime.toLocaleTimeString()} IMU: Acc({imuData.accel.x.toFixed(2)},{imuData.accel.y.toFixed(2)},{imuData.accel.z.toFixed(2)}) Gyro({imuData.gyro.x.toFixed(2)},{imuData.gyro.y.toFixed(2)},{imuData.gyro.z.toFixed(2)})</div>
-            <div className="log-line">{currentTime.toLocaleTimeString()} GAS: V={sensorData.mics.raw.toFixed(3)}V Rs={sensorData.mics.rs.toFixed(1)}kΩ Rs/R0={sensorData.mics.ratio.toFixed(2)} AI={sensorData.mics.activity.toFixed(2)}</div>
-            <div className="log-line">{currentTime.toLocaleTimeString()} BAT: ADC={sensorData.battery.adc} V={sensorData.battery.voltage.toFixed(2)}V ({sensorData.battery.percentage.toFixed(0)}%)</div>
+            <div className="log-line">{currentTime.toLocaleTimeString()} SPD: {gpsData.speed.toFixed(1)}km/h CRS: {gpsData.course.toFixed(1)}° SAT: {gpsData.satellites} HDOP: {gpsData.hdop}</div>
+            <div className="log-line">{currentTime.toLocaleTimeString()} ENV680: T={sensorData.env680.temp.toFixed(1)}°C H={sensorData.env680.humidity.toFixed(1)}% P={sensorData.env680.pressure.toFixed(1)}hPa Gas={sensorData.env680.gas.toFixed(1)}kΩ</div>
+            <div className="log-line">{currentTime.toLocaleTimeString()} ENV280: T={sensorData.env280.temp.toFixed(1)}°C H={sensorData.env280.humidity ? sensorData.env280.humidity.toFixed(1) : 'NA'}% P={sensorData.env280.pressure.toFixed(1)}hPa</div>
+            <div className="log-line">{currentTime.toLocaleTimeString()} IMU: RawAcc({imuData.accelRaw.x.toFixed(2)},{imuData.accelRaw.y.toFixed(2)},{imuData.accelRaw.z.toFixed(2)}) Gyro({imuData.gyro.x.toFixed(2)},{imuData.gyro.y.toFixed(2)},{imuData.gyro.z.toFixed(2)})</div>
+            <div className="log-line">{currentTime.toLocaleTimeString()} GAS: V={sensorData.mics.vout.toFixed(3)}V Rs={sensorData.mics.rs.toFixed(1)}kΩ Rs/R0={sensorData.mics.ratio.toFixed(2)} IDX={sensorData.mics.idx.toFixed(2)}</div>
+            <div className="log-line">{currentTime.toLocaleTimeString()} BAT: ADC={sensorData.battery.adc} V={sensorData.battery.voltage.toFixed(2)}V</div>
           </div>
         </div>
       </div>

@@ -55,9 +55,8 @@ export function useTelemetryData() {
   const tickRef = useRef(0);
   const sensorDataRef = useRef(FAKE_SENSOR_DATA);
   const historyRef = useRef({
-    bme680: [...FAKE_SENSOR_HISTORY.bme680],
-    bme280: [...FAKE_SENSOR_HISTORY.bme280],
-    bmp280: [...FAKE_SENSOR_HISTORY.bmp280],
+    env680: [...FAKE_SENSOR_HISTORY.env680],
+    env280: [...FAKE_SENSOR_HISTORY.env280],
     mics: [...FAKE_SENSOR_HISTORY.mics],
     battery: [...FAKE_SENSOR_HISTORY.battery],
   });
@@ -85,17 +84,15 @@ export function useTelemetryData() {
 
       // Update history in-place (mutate ref, then snapshot for React)
       const h = historyRef.current;
-      pushToHistory(h.bme680, { time: tick, value: newSensors.bme680.gas });
-      pushToHistory(h.bme280, { time: tick, value: newSensors.bme280.pressure });
-      pushToHistory(h.bmp280, { time: tick, value: newSensors.bmp280.pressure });
+      pushToHistory(h.env680, { time: tick, value: newSensors.env680.gas });
+      pushToHistory(h.env280, { time: tick, value: newSensors.env280.pressure });
       pushToHistory(h.mics, { time: tick, value: newSensors.mics.ratio });
       pushToHistory(h.battery, { time: tick, value: newSensors.battery.voltage });
 
       // Snapshot for React (shallow copy of arrays)
       setSensorHistory({
-        bme680: [...h.bme680],
-        bme280: [...h.bme280],
-        bmp280: [...h.bmp280],
+        env680: [...h.env680],
+        env280: [...h.env280],
         mics: [...h.mics],
         battery: [...h.battery],
       });
