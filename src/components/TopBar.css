@@ -1,0 +1,147 @@
+.topbar {
+  height: 42px;
+  min-height: 42px;
+  background: var(--surface-primary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 20px;
+  z-index: 10;
+}
+
+.topbar-left,
+.topbar-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  font-family: var(--font-heading);
+}
+
+.topbar-mission-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  letter-spacing: 0.5px;
+  font-family: var(--font-heading);
+}
+
+.topbar-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff9800;
+  animation: pulse-glow-orange 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow-orange {
+  0%, 100% { box-shadow: 0 0 3px rgba(255, 152, 0, 0.4); }
+  50% { box-shadow: 0 0 8px rgba(255, 152, 0, 0.8); }
+}
+
+.topbar-status-value {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-family: var(--font-heading);
+}
+
+.topbar-status-value.connected {
+  color: #00e676;
+}
+
+.topbar-status-value.disconnected {
+  color: #ff1744;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+}
+
+.topbar-action-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.topbar-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border-color: var(--accent-cyan);
+}
+
+.topbar-rec-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(255, 23, 68, 0.12);
+  border: 1px solid rgba(255, 23, 68, 0.25);
+  border-radius: 5px;
+  color: #ff1744;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-heading);
+}
+
+.topbar-rec-btn:hover {
+  background: rgba(255, 23, 68, 0.22);
+  border-color: #ff1744;
+}
+
+.rec-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff1744;
+  animation: rec-blink 1s ease-in-out infinite;
+}
+
+@keyframes rec-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.topbar-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: 12px;
+  line-height: 1.15;
+}
+
+.topbar-time-main {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-data);
+  letter-spacing: 0.5px;
+}
+
+.topbar-time-utc {
+  font-size: 8px;
+  color: var(--text-muted);
+  font-family: var(--font-data);
+  letter-spacing: 0.5px;
+}

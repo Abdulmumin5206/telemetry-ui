@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700;800&display=swap');
+
+/* ============================================================
+   DESIGN SYSTEM — UAV Ground Station
+   Dark aerospace-grade telemetry theme
+   Typography: Rajdhani (labels/UI), Share Tech Mono (data values),
+               Exo 2 (headings)
+   ============================================================ */
+
+:root {
+  /* Background layers */
+  --bg-base: #060a13;
+  --bg-body: #0a0f1a;
+  
+  /* Surfaces */
+  --surface-primary: #0d1321;
+  --surface-secondary: #111827;
+  --surface-elevated: #151d2e;
+  --surface-card: rgba(13, 19, 33, 0.85);
+  
+  /* Borders */
+  --border-color: rgba(255, 255, 255, 0.07);
+  --border-active: rgba(0, 229, 255, 0.25);
+  
+  /* Text */
+  --text-primary: #e8ecf4;
+  --text-secondary: #8b95a8;
+  --text-muted: #505a6e;
+  
+  /* Accents */
+  --accent-blue: #2979ff;
+  --accent-cyan: #00e5ff;
+  --accent-green: #00e676;
+  --accent-orange: #ff9800;
+  --accent-red: #ff1744;
+  --accent-purple: #b388ff;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+  
+  /* Typography */
+  --font-ui: 'Rajdhani', 'Inter', sans-serif;
+  --font-data: 'Share Tech Mono', 'JetBrains Mono', monospace;
+  --font-heading: 'Exo 2', 'Rajdhani', sans-serif;
+  
+  /* Spacing */
+  --gap: 8px;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-body);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================================
+   PANEL SHARED STYLES
+   ============================================================ */
+.panel {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  backdrop-filter: blur(12px);
+  transition: border-color 0.3s ease;
+  overflow: hidden;
+}
+
+.panel:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.panel-header-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.panel-header-dot.green {
+  background: var(--accent-green);
+  box-shadow: 0 0 6px rgba(0, 230, 118, 0.5);
+}
+
+.panel-header-dot.blue {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+}
+
+.panel-header-dot.orange {
+  background: var(--accent-orange);
+  box-shadow: 0 0 6px rgba(255, 152, 0, 0.5);
+}
+
+.panel-header-dot.red {
+  background: var(--accent-red);
+  box-shadow: 0 0 6px rgba(255, 23, 68, 0.5);
+}
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: var(--font-heading);
+}
+
+/* ============================================================
+   UTILITY ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}

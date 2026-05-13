@@ -1,0 +1,45 @@
+.bottombar {
+  height: 28px;
+  min-height: 28px;
+  background: var(--surface-primary);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 0 16px;
+  z-index: 10;
+}
+
+.bottombar-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bottombar-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.8px;
+  font-family: var(--font-heading);
+}
+
+.bottombar-value {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  font-family: var(--font-data);
+}
+
+.bottombar-value.highlight {
+  color: var(--accent-cyan);
+  background: rgba(0, 229, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+}

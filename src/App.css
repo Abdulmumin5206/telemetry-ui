@@ -1,0 +1,131 @@
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+.app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--bg-body);
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-content {
+  flex: 1;
+  overflow: hidden; /* Prevent scrolling, fit everything */
+  padding: var(--gap);
+  display: flex;
+  flex-direction: column;
+}
+
+.full-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  height: 100%;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.dashboard-top {
+  display: grid;
+  grid-template-columns: 280px 1.5fr 1fr;
+  height: 35%;
+  gap: var(--gap);
+  flex-shrink: 0;
+}
+
+.dashboard-bottom {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ============================================================
+   DASHBOARD GRID — 3 columns for top row
+   ============================================================ */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 1fr;
+  gap: var(--gap);
+  height: 100%;
+  animation: fadeIn 0.4s ease;
+}
+
+/* Second row spans full width */
+.dashboard-row-2 {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gap);
+}
+
+/* Placeholder panels for future content */
+.panel-placeholder {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  backdrop-filter: blur(12px);
+}
+
+.placeholder-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-heading);
+}
+
+.placeholder-icon {
+  font-size: 24px;
+  opacity: 0.4;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1400px) {
+  .dashboard-grid {
+    grid-template-columns: 240px 1fr 1fr;
+  }
+}
+
+@media (max-width: 1100px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .gps-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-row-2 {
+    grid-template-columns: 1fr;
+  }
+}

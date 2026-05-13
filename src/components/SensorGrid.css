@@ -1,0 +1,163 @@
+.sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr 1fr;
+  gap: var(--gap);
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+}
+
+.sensor-panel {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+  transition: border-color 0.3s ease;
+}
+
+.sensor-panel:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Corner accent lines (like the reference image) */
+.sensor-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px 0 0 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sensor-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0 0 6px 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sensor-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sensor-icon {
+  font-size: 14px;
+}
+
+.sensor-title {
+  font-size: 11px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.sensor-body {
+  padding: 8px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+}
+
+.sensor-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 4px;
+}
+
+.sensor-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sensor-metric-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+}
+
+.sensor-metric-value {
+  font-size: 20px;
+  color: var(--text-primary);
+  font-family: var(--font-data);
+  line-height: 1.1;
+}
+
+.sensor-metric-unit {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-left: 3px;
+  font-family: var(--font-data);
+}
+
+.sensor-graph-container {
+  flex: 1;
+  min-height: 60px;
+  position: relative;
+  background: rgba(6, 10, 19, 0.5);
+  border-radius: 4px;
+  padding: 2px 0 0 0;
+  margin-top: 4px;
+}
+
+/* IMU / Attitude specific */
+.sensor-imu-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.sensor-log-container {
+  flex: 1;
+  background: rgba(6, 10, 19, 0.7);
+  padding: 10px;
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: #00e676;
+  overflow-y: auto;
+  line-height: 1.6;
+  border: 1px solid rgba(0, 230, 118, 0.08);
+}
+
+.log-line {
+  margin-bottom: 4px;
+}
+
+/* Recharts overrides for dark theme */
+.sensor-graph-container .recharts-cartesian-grid-horizontal line {
+  stroke: rgba(255, 255, 255, 0.06) !important;
+}
+
+.sensor-graph-container .recharts-text {
+  fill: rgba(255, 255, 255, 0.3) !important;
+}

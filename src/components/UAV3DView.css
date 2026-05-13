@@ -1,0 +1,109 @@
+.uav3d-panel {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.uav3d-content {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+  min-height: 0;
+}
+
+.uav3d-canvas-wrap {
+  flex: 1;
+  position: relative;
+  border-radius: 5px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #080e1c 0%, #0c1428 60%, #101c35 100%);
+  min-height: 240px;
+}
+
+.uav3d-canvas-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Axis labels overlaid on 3D scene */
+.axis-label {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-data);
+  pointer-events: none;
+  text-shadow: 0 0 6px rgba(0,0,0,0.8);
+}
+
+.axis-label.axis-x {
+  bottom: 32%;
+  right: 8%;
+  color: #ff4444;
+}
+
+.axis-label.axis-y {
+  top: 8%;
+  left: 52%;
+  color: #4488ff;
+}
+
+.axis-label.axis-z {
+  bottom: 25%;
+  left: 15%;
+  color: #44ff44;
+}
+
+/* Right sidebar: compass + readouts */
+.uav3d-sidebar {
+  width: 100px;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+/* Compass */
+.compass-container {
+  width: 96px;
+  height: 96px;
+}
+
+.compass-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Attitude readouts */
+.attitude-readouts {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+
+.attitude-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.attitude-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 1.2px;
+  font-family: var(--font-heading);
+}
+
+.attitude-value {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-primary);
+  font-family: var(--font-data);
+}
+
+.attitude-value.cyan {
+  color: var(--accent-cyan);
+}
