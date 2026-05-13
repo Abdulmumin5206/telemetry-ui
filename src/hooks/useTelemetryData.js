@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   FAKE_GPS_DATA,
   FAKE_GPS_TRAIL,
@@ -15,82 +15,126 @@ import {
 
 /**
  * ============================================================
- * FAKE DATA HOOK
+ * FAKE DATA HOOK — OPTIMIZED FOR LOW MEMORY
  * ============================================================
- * This hook provides simulated live telemetry data.
- * REPLACE this hook with real data source when connecting
- * to actual telemetry (e.g., WebSocket, Serial, MQTT).
+ * Key optimizations:
+ * - IMU data uses useRef (no React re-render, read by Three.js directly)
+ * - Sensor history updates throttled to 2Hz (was 10Hz)
+ * - GPS + clock still 1Hz
+ * - Sensor display values update at 2Hz
  * ============================================================
  */
+
+// Max data points kept in history (was unbounded via slice)
+const MAX_HISTORY_POINTS = 50;
+
+// Reusable function to push to a ring-buffer style array
+function pushToHistory(arr, newPoint) {
+  if (arr.length >= MAX_HISTORY_POINTS) {
+    arr.shift();
+  }
+  arr.push(newPoint);
+  return arr;
+}
+
 export function useTelemetryData() {
   const [gpsData, setGpsData] = useState(FAKE_GPS_DATA);
   const [gpsTrail, setGpsTrail] = useState(FAKE_GPS_TRAIL);
-  const [imuData, setImuData] = useState(FAKE_IMU_DATA);
   const [flightStatus, setFlightStatus] = useState(FAKE_FLIGHT_STATUS);
   const [systemHealth] = useState(FAKE_SYSTEM_HEALTH);
   const [mission] = useState(FAKE_MISSION);
   const [sensorData, setSensorData] = useState(FAKE_SENSOR_DATA);
   const [sensorHistory, setSensorHistory] = useState(FAKE_SENSOR_HISTORY);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const intervalRef = useRef(null);
+
+  // IMU data via ref — Three.js reads this directly, no React re-render needed
+  const imuRef = useRef(FAKE_IMU_DATA);
+  // We still expose a state version for non-3D IMU displays, but update it at 2Hz
+  const [imuData, setImuData] = useState(FAKE_IMU_DATA);
+
   const tickRef = useRef(0);
+  const sensorDataRef = useRef(FAKE_SENSOR_DATA);
+  const historyRef = useRef({
+    bme680: [...FAKE_SENSOR_HISTORY.bme680],
+    bme280: [...FAKE_SENSOR_HISTORY.bme280],
+    bmp280: [...FAKE_SENSOR_HISTORY.bmp280],
+    mics: [...FAKE_SENSOR_HISTORY.mics],
+    battery: [...FAKE_SENSOR_HISTORY.battery],
+  });
 
   useEffect(() => {
-    // Simulate live updates at ~10Hz for smooth 3D, GPS at 1Hz
-    intervalRef.current = setInterval(() => {
+    // Fast loop: 10Hz — ONLY updates the IMU ref for smooth 3D
+    const fastInterval = setInterval(() => {
       tickRef.current += 1;
-      const t = tickRef.current * 0.1; // time in seconds
-
-      // IMU updates every tick (smooth 3D)
-      setImuData(generateLiveIMU(FAKE_IMU_DATA, t));
-
-      // Sensor updates every tick
-      setSensorData(prev => {
-        const newSensors = generateLiveSensors(prev, t);
-        setSensorHistory(hist => {
-          const tick = tickRef.current;
-          return {
-            bme680: [...hist.bme680.slice(-49), { time: tick, value: newSensors.bme680.gas }],
-            bme280: [...hist.bme280.slice(-49), { time: tick, value: newSensors.bme280.pressure }],
-            bmp280: [...hist.bmp280.slice(-49), { time: tick, value: newSensors.bmp280.pressure }],
-            mics: [...hist.mics.slice(-49), { time: tick, value: newSensors.mics.ratio }],
-            battery: [...hist.battery.slice(-49), { time: tick, value: newSensors.battery.voltage }]
-          };
-        });
-        return newSensors;
-      });
-
-      // GPS + clock updates every 10th tick (~1Hz)
-      if (tickRef.current % 10 === 0) {
-        setGpsData(prev => {
-          const newGps = generateLiveGPS(prev);
-          setGpsTrail(trail => {
-            const updated = [...trail, [newGps.latitude, newGps.longitude]];
-            return updated.length > 50 ? updated.slice(-50) : updated;
-          });
-          return newGps;
-        });
-        setCurrentTime(new Date());
-
-        // Uptime tick
-        setFlightStatus(prev => {
-          const parts = prev.uptime.split(':').map(Number);
-          let secs = parts[0] * 3600 + parts[1] * 60 + parts[2] + 1;
-          const h = String(Math.floor(secs / 3600)).padStart(2, '0');
-          const m = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
-          const s = String(secs % 60).padStart(2, '0');
-          return { ...prev, uptime: `${h}:${m}:${s}` };
-        });
-      }
+      const t = tickRef.current * 0.1;
+      imuRef.current = generateLiveIMU(FAKE_IMU_DATA, t);
     }, 100);
 
-    return () => clearInterval(intervalRef.current);
+    // Medium loop: 2Hz — Updates sensor values, charts, and IMU display
+    const mediumInterval = setInterval(() => {
+      const t = tickRef.current * 0.1;
+      const tick = tickRef.current;
+
+      // Sync IMU state for display panels (2Hz is plenty for text readouts)
+      setImuData({ ...imuRef.current });
+
+      // Generate new sensor values
+      const newSensors = generateLiveSensors(sensorDataRef.current, t);
+      sensorDataRef.current = newSensors;
+      setSensorData(newSensors);
+
+      // Update history in-place (mutate ref, then snapshot for React)
+      const h = historyRef.current;
+      pushToHistory(h.bme680, { time: tick, value: newSensors.bme680.gas });
+      pushToHistory(h.bme280, { time: tick, value: newSensors.bme280.pressure });
+      pushToHistory(h.bmp280, { time: tick, value: newSensors.bmp280.pressure });
+      pushToHistory(h.mics, { time: tick, value: newSensors.mics.ratio });
+      pushToHistory(h.battery, { time: tick, value: newSensors.battery.voltage });
+
+      // Snapshot for React (shallow copy of arrays)
+      setSensorHistory({
+        bme680: [...h.bme680],
+        bme280: [...h.bme280],
+        bmp280: [...h.bmp280],
+        mics: [...h.mics],
+        battery: [...h.battery],
+      });
+    }, 500);
+
+    // Slow loop: 1Hz — GPS, clock, flight status
+    const slowInterval = setInterval(() => {
+      setGpsData(prev => {
+        const newGps = generateLiveGPS(prev);
+        setGpsTrail(trail => {
+          const updated = [...trail, [newGps.latitude, newGps.longitude]];
+          return updated.length > 50 ? updated.slice(-50) : updated;
+        });
+        return newGps;
+      });
+      setCurrentTime(new Date());
+
+      setFlightStatus(prev => {
+        const parts = prev.uptime.split(':').map(Number);
+        let secs = parts[0] * 3600 + parts[1] * 60 + parts[2] + 1;
+        const h = String(Math.floor(secs / 3600)).padStart(2, '0');
+        const m = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
+        const s = String(secs % 60).padStart(2, '0');
+        return { ...prev, uptime: `${h}:${m}:${s}` };
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(fastInterval);
+      clearInterval(mediumInterval);
+      clearInterval(slowInterval);
+    };
   }, []);
 
   return {
     gpsData,
     gpsTrail,
     imuData,
+    imuRef,      // Expose ref for Three.js direct access
     flightStatus,
     systemHealth,
     mission,

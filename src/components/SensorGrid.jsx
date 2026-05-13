@@ -1,36 +1,16 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { ResponsiveContainer, LineChart, Line, YAxis, XAxis, CartesianGrid } from 'recharts';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Box } from '@react-three/drei';
 import UAV3DView from './UAV3DView';
 import './SensorGrid.css';
-
-// Mini 3D Box for IMU visualization
-function IMUBox({ imuData }) {
-  const meshRef = useRef();
-  useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = imuData.roll * (Math.PI / 180);
-      meshRef.current.rotation.y = -imuData.yaw * (Math.PI / 180);
-      meshRef.current.rotation.z = -imuData.pitch * (Math.PI / 180);
-    }
-  });
-  return (
-    <Box ref={meshRef} args={[1.5, 1.5, 1.5]}>
-      <meshStandardMaterial color="#444" wireframe />
-      <axesHelper args={[3]} />
-    </Box>
-  );
-}
 
 // Format time tick from data index to HH:MM:SS
 function formatTimeTick(tick, data) {
   const now = new Date();
-  // Each data point is ~100ms apart, so offset from now
+  // Each data point is ~500ms apart (2Hz), so offset from now
   const totalPoints = data?.length || 50;
   const pointIndex = data?.findIndex(d => d.time === tick);
   const idx = pointIndex >= 0 ? pointIndex : 0;
-  const secondsAgo = ((totalPoints - 1) - idx) * 0.1;
+  const secondsAgo = ((totalPoints - 1) - idx) * 0.5;
   const tickDate = new Date(now.getTime() - secondsAgo * 1000);
   const h = tickDate.getHours().toString().padStart(2, '0');
   const m = tickDate.getMinutes().toString().padStart(2, '0');
@@ -39,7 +19,8 @@ function formatTimeTick(tick, data) {
 }
 
 // Reusable sensor chart matching the reference dark style
-function SensorChart({ data, stroke, yDomain }) {
+// Memoized to avoid re-renders when parent updates unrelated state
+const SensorChart = React.memo(function SensorChart({ data, stroke, yDomain }) {
   // Calculate X-axis ticks: show 3 evenly spaced ticks
   const xTicks = useMemo(() => {
     if (!data || data.length < 3) return [];
@@ -110,103 +91,131 @@ function SensorChart({ data, stroke, yDomain }) {
       </LineChart>
     </ResponsiveContainer>
   );
-}
+});
 
-export default function SensorGrid({ imuData, sensorData, sensorHistory, gpsData, currentTime }) {
+// IMU display — pure CSS visualization instead of a 3D Canvas
+// This saves ~300-500MB by eliminating a WebGL context
+const IMUVisualizer = React.memo(function IMUVisualizer({ imuData }) {
+  const rollDeg = imuData.roll;
+  const pitchDeg = imuData.pitch;
+  
+  return (
+    <div className="imu-css-viz">
+      <div 
+        className="imu-cube-container"
+        style={{ 
+          transform: `rotateX(${-pitchDeg}deg) rotateZ(${rollDeg}deg)`,
+          transition: 'transform 0.3s ease-out'
+        }}
+      >
+        <div className="imu-cube-face imu-front">F</div>
+        <div className="imu-cube-face imu-back">B</div>
+        <div className="imu-cube-face imu-top">T</div>
+        <div className="imu-cube-face imu-bottom">B</div>
+        <div className="imu-cube-face imu-left">L</div>
+        <div className="imu-cube-face imu-right">R</div>
+      </div>
+      <div className="imu-axes">
+        <span className="imu-axis-x">X</span>
+        <span className="imu-axis-y">Y</span>
+        <span className="imu-axis-z">Z</span>
+      </div>
+    </div>
+  );
+});
+
+// Memoize sensor panels to avoid re-rendering when other panels' data changes
+const SensorPanel = React.memo(function SensorPanel({ icon, iconColor, title, children }) {
+  return (
+    <div className="sensor-panel">
+      <div className="sensor-header">
+        <span className="sensor-icon" style={{ color: iconColor }}>{icon}</span>
+        <h3 className="sensor-title" style={{ color: iconColor }}>{title}</h3>
+      </div>
+      <div className="sensor-body">
+        {children}
+      </div>
+    </div>
+  );
+});
+
+export default function SensorGrid({ imuData, imuRef, sensorData, sensorHistory, gpsData, currentTime }) {
   return (
     <div className="sensor-grid">
       {/* Row 1 */}
       {/* 1. BME680 */}
-      <div className="sensor-panel">
-        <div className="sensor-header">
-          <span className="sensor-icon" style={{ color: '#ab47bc' }}>◎</span>
-          <h3 className="sensor-title" style={{ color: '#ab47bc' }}>BME680</h3>
-        </div>
-        <div className="sensor-body">
-          <div className="sensor-metrics-grid">
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">TEMPERATURE</span>
-              <div><span className="sensor-metric-value">{sensorData.bme680.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">HUMIDITY</span>
-              <div><span className="sensor-metric-value">{sensorData.bme680.humidity.toFixed(1)}</span><span className="sensor-metric-unit">%</span></div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">PRESSURE</span>
-              <div><span className="sensor-metric-value">{sensorData.bme680.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">GAS RESISTANCE</span>
-              <div><span className="sensor-metric-value">{sensorData.bme680.gas.toFixed(1)}</span><span className="sensor-metric-unit">kΩ</span></div>
-            </div>
+      <SensorPanel icon="◎" iconColor="#ab47bc" title="BME680">
+        <div className="sensor-metrics-grid">
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">TEMPERATURE</span>
+            <div><span className="sensor-metric-value">{sensorData.bme680.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
           </div>
-          <div className="sensor-graph-container">
-            <SensorChart
-              data={sensorHistory.bme680}
-              stroke="#ab47bc"
-            />
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">HUMIDITY</span>
+            <div><span className="sensor-metric-value">{sensorData.bme680.humidity.toFixed(1)}</span><span className="sensor-metric-unit">%</span></div>
+          </div>
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">PRESSURE</span>
+            <div><span className="sensor-metric-value">{sensorData.bme680.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
+          </div>
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">GAS RESISTANCE</span>
+            <div><span className="sensor-metric-value">{sensorData.bme680.gas.toFixed(1)}</span><span className="sensor-metric-unit">kΩ</span></div>
           </div>
         </div>
-      </div>
+        <div className="sensor-graph-container">
+          <SensorChart
+            data={sensorHistory.bme680}
+            stroke="#ab47bc"
+          />
+        </div>
+      </SensorPanel>
 
       {/* 2. BME280 */}
-      <div className="sensor-panel">
-        <div className="sensor-header">
-          <span className="sensor-icon" style={{ color: '#29b6f6' }}>○</span>
-          <h3 className="sensor-title" style={{ color: '#29b6f6' }}>BME280</h3>
-        </div>
-        <div className="sensor-body">
-          <div className="sensor-metrics-grid">
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">TEMPERATURE</span>
-              <div><span className="sensor-metric-value">{sensorData.bme280.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">HUMIDITY</span>
-              <div><span className="sensor-metric-value">{sensorData.bme280.humidity.toFixed(1)}</span><span className="sensor-metric-unit">%</span></div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">PRESSURE</span>
-              <div><span className="sensor-metric-value">{sensorData.bme280.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
-            </div>
+      <SensorPanel icon="○" iconColor="#29b6f6" title="BME280">
+        <div className="sensor-metrics-grid">
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">TEMPERATURE</span>
+            <div><span className="sensor-metric-value">{sensorData.bme280.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
           </div>
-          <div className="sensor-graph-container">
-            <SensorChart
-              data={sensorHistory.bme280}
-              stroke="#29b6f6"
-            />
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">HUMIDITY</span>
+            <div><span className="sensor-metric-value">{sensorData.bme280.humidity.toFixed(1)}</span><span className="sensor-metric-unit">%</span></div>
+          </div>
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">PRESSURE</span>
+            <div><span className="sensor-metric-value">{sensorData.bme280.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
           </div>
         </div>
-      </div>
+        <div className="sensor-graph-container">
+          <SensorChart
+            data={sensorHistory.bme280}
+            stroke="#29b6f6"
+          />
+        </div>
+      </SensorPanel>
 
       {/* 3. BMP280 */}
-      <div className="sensor-panel">
-        <div className="sensor-header">
-          <span className="sensor-icon" style={{ color: '#ff9800' }}>📄</span>
-          <h3 className="sensor-title" style={{ color: '#ff9800' }}>BMP280</h3>
-        </div>
-        <div className="sensor-body">
-          <div className="sensor-metrics-grid">
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">TEMPERATURE</span>
-              <div><span className="sensor-metric-value">{sensorData.bmp280.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">PRESSURE</span>
-              <div><span className="sensor-metric-value">{sensorData.bmp280.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
-            </div>
+      <SensorPanel icon="📄" iconColor="#ff9800" title="BMP280">
+        <div className="sensor-metrics-grid">
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">TEMPERATURE</span>
+            <div><span className="sensor-metric-value">{sensorData.bmp280.temp.toFixed(1)}</span><span className="sensor-metric-unit">°C</span></div>
           </div>
-          <div className="sensor-graph-container">
-            <SensorChart
-              data={sensorHistory.bmp280}
-              stroke="#ff9800"
-            />
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">PRESSURE</span>
+            <div><span className="sensor-metric-value">{sensorData.bmp280.pressure.toFixed(1)}</span><span className="sensor-metric-unit">hPa</span></div>
           </div>
         </div>
-      </div>
+        <div className="sensor-graph-container">
+          <SensorChart
+            data={sensorHistory.bmp280}
+            stroke="#ff9800"
+          />
+        </div>
+      </SensorPanel>
 
-      {/* 4. MPU-9250 (IMU) */}
+      {/* 4. MPU-9250 (IMU) — Uses CSS cube instead of WebGL Canvas */}
       <div className="sensor-panel">
         <div className="sensor-header">
           <span className="sensor-icon" style={{ color: '#00e5ff' }}>⚙️</span>
@@ -227,85 +236,69 @@ export default function SensorGrid({ imuData, sensorData, sensorHistory, gpsData
               <div style={{ display: 'flex', gap: '8px', color: '#4488ff' }}><span>Z</span><span className="sensor-metric-value" style={{color: '#fff'}}>{imuData.gyro.z.toFixed(2)}</span></div>
             </div>
           </div>
-          <div className="sensor-graph-container" style={{ position: 'relative', background: 'transparent' }}>
-            <Canvas camera={{ position: [5, 5, 5] }}>
-              <ambientLight intensity={0.5} />
-              <pointLight position={[10, 10, 10]} />
-              <IMUBox imuData={imuData} />
-            </Canvas>
+          <div className="sensor-graph-container" style={{ position: 'relative', background: 'rgba(0,0,0,0.2)', borderRadius: '4px' }}>
+            <IMUVisualizer imuData={imuData} />
           </div>
         </div>
       </div>
 
       {/* Row 2 */}
       {/* 5. MICS-5524 */}
-      <div className="sensor-panel">
-        <div className="sensor-header">
-          <span className="sensor-icon" style={{ color: '#ffea00' }}>⚗️</span>
-          <h3 className="sensor-title" style={{ color: '#ffea00' }}>MICS-5524 (GAS SENSOR)</h3>
-        </div>
-        <div className="sensor-body">
-          <div className="sensor-metrics-grid">
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">RAW VOLTAGE</span>
-              <div><span className="sensor-metric-value">{sensorData.mics.raw.toFixed(3)}</span><span className="sensor-metric-unit">V</span></div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">RESISTANCE (Rs)</span>
-              <div><span className="sensor-metric-value">{sensorData.mics.rs.toFixed(1)}</span><span className="sensor-metric-unit">kΩ</span></div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">Rs/R₀ RATIO</span>
-              <div><span className="sensor-metric-value">{sensorData.mics.ratio.toFixed(2)}</span></div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">ACTIVITY INDEX</span>
-              <div><span className="sensor-metric-value">{sensorData.mics.activity.toFixed(2)}</span></div>
-            </div>
+      <SensorPanel icon="⚗️" iconColor="#ffea00" title="MICS-5524 (GAS SENSOR)">
+        <div className="sensor-metrics-grid">
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">RAW VOLTAGE</span>
+            <div><span className="sensor-metric-value">{sensorData.mics.raw.toFixed(3)}</span><span className="sensor-metric-unit">V</span></div>
           </div>
-          <div className="sensor-graph-container">
-            <SensorChart
-              data={sensorHistory.mics}
-              stroke="#ffea00"
-            />
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">RESISTANCE (Rs)</span>
+            <div><span className="sensor-metric-value">{sensorData.mics.rs.toFixed(1)}</span><span className="sensor-metric-unit">kΩ</span></div>
+          </div>
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">Rs/R₀ RATIO</span>
+            <div><span className="sensor-metric-value">{sensorData.mics.ratio.toFixed(2)}</span></div>
+          </div>
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">ACTIVITY INDEX</span>
+            <div><span className="sensor-metric-value">{sensorData.mics.activity.toFixed(2)}</span></div>
           </div>
         </div>
-      </div>
+        <div className="sensor-graph-container">
+          <SensorChart
+            data={sensorHistory.mics}
+            stroke="#ffea00"
+          />
+        </div>
+      </SensorPanel>
 
       {/* 6. BATTERY */}
-      <div className="sensor-panel">
-        <div className="sensor-header">
-          <span className="sensor-icon" style={{ color: '#00e676' }}>🔋</span>
-          <h3 className="sensor-title" style={{ color: '#00e676' }}>BATTERY</h3>
-        </div>
-        <div className="sensor-body">
-          <div className="sensor-metrics-grid">
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">ADC READING</span>
-              <div><span className="sensor-metric-value">{sensorData.battery.adc}</span><span className="sensor-metric-unit">counts</span></div>
-            </div>
-            <div className="sensor-metric" style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '40px', height: '20px', border: '2px solid #555', borderRadius: '3px', position: 'relative', padding: '2px' }}>
-                  <div style={{ width: `${sensorData.battery.percentage}%`, height: '100%', background: '#00e676', borderRadius: '1px' }}></div>
-                  <div style={{ position: 'absolute', right: '-4px', top: '4px', width: '2px', height: '8px', background: '#555', borderRadius: '0 2px 2px 0' }}></div>
-                </div>
-                <span className="sensor-metric-value">{sensorData.battery.percentage.toFixed(0)}%</span>
+      <SensorPanel icon="🔋" iconColor="#00e676" title="BATTERY">
+        <div className="sensor-metrics-grid">
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">ADC READING</span>
+            <div><span className="sensor-metric-value">{sensorData.battery.adc}</span><span className="sensor-metric-unit">counts</span></div>
+          </div>
+          <div className="sensor-metric" style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '40px', height: '20px', border: '2px solid #555', borderRadius: '3px', position: 'relative', padding: '2px' }}>
+                <div style={{ width: `${sensorData.battery.percentage}%`, height: '100%', background: '#00e676', borderRadius: '1px' }}></div>
+                <div style={{ position: 'absolute', right: '-4px', top: '4px', width: '2px', height: '8px', background: '#555', borderRadius: '0 2px 2px 0' }}></div>
               </div>
-            </div>
-            <div className="sensor-metric">
-              <span className="sensor-metric-label">VOLTAGE</span>
-              <div><span className="sensor-metric-value">{sensorData.battery.voltage.toFixed(2)}</span><span className="sensor-metric-unit">V</span></div>
+              <span className="sensor-metric-value">{sensorData.battery.percentage.toFixed(0)}%</span>
             </div>
           </div>
-          <div className="sensor-graph-container">
-            <SensorChart
-              data={sensorHistory.battery}
-              stroke="#00e676"
-            />
+          <div className="sensor-metric">
+            <span className="sensor-metric-label">VOLTAGE</span>
+            <div><span className="sensor-metric-value">{sensorData.battery.voltage.toFixed(2)}</span><span className="sensor-metric-unit">V</span></div>
           </div>
         </div>
-      </div>
+        <div className="sensor-graph-container">
+          <SensorChart
+            data={sensorHistory.battery}
+            stroke="#00e676"
+          />
+        </div>
+      </SensorPanel>
 
       {/* 7. ATTITUDE (from IMU) */}
       <div className="sensor-panel" style={{ padding: 0 }}>
@@ -314,7 +307,7 @@ export default function SensorGrid({ imuData, sensorData, sensorHistory, gpsData
           <h3 className="sensor-title" style={{ color: '#4488ff' }}>ATTITUDE (from IMU)</h3>
         </div>
         <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-          <UAV3DView imuData={imuData} hideHeader={true} />
+          <UAV3DView imuData={imuData} imuRef={imuRef} hideHeader={true} />
         </div>
       </div>
 

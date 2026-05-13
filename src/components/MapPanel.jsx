@@ -43,7 +43,7 @@ function MapAutoCenter({ position }) {
   return null;
 }
 
-export default function MapPanel({ gpsData, gpsTrail }) {
+export default React.memo(function MapPanel({ gpsData, gpsTrail }) {
   const currentPos = [gpsData.latitude, gpsData.longitude];
   const homePos = gpsTrail.length > 0 ? gpsTrail[0] : currentPos;
 
@@ -125,4 +125,4 @@ export default function MapPanel({ gpsData, gpsTrail }) {
       </div>
     </div>
   );
-}
+});

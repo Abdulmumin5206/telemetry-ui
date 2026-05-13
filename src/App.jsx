@@ -11,7 +11,7 @@ import './App.css';
 
 export default function App() {
   const [activeNav, setActiveNav] = useState('dashboard');
-  const { gpsData, gpsTrail, imuData, flightStatus, systemHealth, mission, sensorData, sensorHistory, currentTime } = useTelemetryData();
+  const { gpsData, gpsTrail, imuData, imuRef, flightStatus, systemHealth, mission, sensorData, sensorHistory, currentTime } = useTelemetryData();
 
   return (
     <div className="app">
@@ -31,11 +31,12 @@ export default function App() {
               <div className="dashboard-top">
                 <GPSPanel gpsData={gpsData} />
                 <MapPanel gpsData={gpsData} gpsTrail={gpsTrail} />
-                <UAV3DView imuData={imuData} />
+                <UAV3DView imuData={imuData} imuRef={imuRef} />
               </div>
               <div className="dashboard-bottom">
                 <SensorGrid 
-                  imuData={imuData} 
+                  imuData={imuData}
+                  imuRef={imuRef}
                   sensorData={sensorData} 
                   sensorHistory={sensorHistory}
                   gpsData={gpsData}

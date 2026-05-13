@@ -1,7 +1,7 @@
 import React from 'react';
 import './GPSPanel.css';
 
-export default function GPSPanel({ gpsData }) {
+export default React.memo(function GPSPanel({ gpsData }) {
   return (
     <div className="panel gps-panel" id="gps-panel">
       <div className="panel-header">
@@ -66,4 +66,4 @@ export default function GPSPanel({ gpsData }) {
       </div>
     </div>
   );
-}
+});

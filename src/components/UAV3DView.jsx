@@ -6,16 +6,23 @@ import './UAV3DView.css';
 /* ─────────────────────────────────────────────
    Fixed-wing aircraft — nose along -Z axis
    Uses only simple mesh primitives for reliability
+   
+   OPTIMIZED: Reads IMU from ref, not state (no re-renders)
    ───────────────────────────────────────────── */
-function FixedWingAircraft({ imuData }) {
+function FixedWingAircraft({ imuRef, imuData }) {
   const groupRef = useRef();
+  // Reuse these objects to avoid GC pressure
+  const euler = useMemo(() => new THREE.Euler(0, 0, 0, 'YXZ'), []);
+  const targetQ = useMemo(() => new THREE.Quaternion(), []);
 
   useFrame(() => {
     if (!groupRef.current) return;
-    const tRoll = THREE.MathUtils.degToRad(imuData.roll);
-    const tPitch = THREE.MathUtils.degToRad(-imuData.pitch);
-    const euler = new THREE.Euler(tPitch, 0, tRoll, 'YXZ');
-    const targetQ = new THREE.Quaternion().setFromEuler(euler);
+    // Read from ref for smooth updates without React re-renders
+    const data = imuRef?.current || imuData;
+    const tRoll = THREE.MathUtils.degToRad(data.roll);
+    const tPitch = THREE.MathUtils.degToRad(-data.pitch);
+    euler.set(tPitch, 0, tRoll, 'YXZ');
+    targetQ.setFromEuler(euler);
     groupRef.current.quaternion.slerp(targetQ, 0.15);
   });
 
@@ -145,9 +152,9 @@ function CameraSetup() {
 }
 
 /* ─────────────────────────────────────────────
-   Compass rose SVG overlay
+   Compass rose SVG overlay (memoized)
    ───────────────────────────────────────────── */
-function CompassRose({ heading }) {
+const CompassRose = React.memo(function CompassRose({ heading }) {
   const ticks = [];
   for (let i = 0; i < 360; i += 10) {
     const isMajor = i % 30 === 0;
@@ -212,12 +219,12 @@ function CompassRose({ heading }) {
       </svg>
     </div>
   );
-}
+});
 
 /* ─────────────────────────────────────────────
    Main 3D UAV View Panel
    ───────────────────────────────────────────── */
-export default function UAV3DView({ imuData, hideHeader }) {
+export default function UAV3DView({ imuData, imuRef, hideHeader }) {
   return (
     <div className={`panel uav3d-panel ${hideHeader ? 'no-border no-padding' : ''}`} id="uav3d-panel" style={hideHeader ? { border: 'none', background: 'transparent' } : {}}>
       {!hideHeader && (
@@ -230,8 +237,9 @@ export default function UAV3DView({ imuData, hideHeader }) {
       <div className="uav3d-content">
         <div className="uav3d-canvas-wrap">
           <Canvas
-            gl={{ antialias: true }}
+            gl={{ antialias: true, powerPreference: 'low-power' }}
             camera={{ position: [3, 2, 3], fov: 35, near: 0.1, far: 100 }}
+            frameloop="always"
           >
             <CameraSetup />
             <ambientLight intensity={0.6} />
@@ -241,7 +249,7 @@ export default function UAV3DView({ imuData, hideHeader }) {
 
             <GroundGrid />
             <AxisLines />
-            <FixedWingAircraft imuData={imuData} />
+            <FixedWingAircraft imuRef={imuRef} imuData={imuData} />
           </Canvas>
 
           {/* Axis labels overlay */}
